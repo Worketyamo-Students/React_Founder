@@ -15,6 +15,7 @@ import { useState } from "react"
 import { Link } from "react-router"
 import {ClipLoader} from 'react-spinners'
 import { useNavigate } from "react-router"
+import { toast } from "@/components/ui/toast"
 
 
 
@@ -24,11 +25,11 @@ export function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+ 
 
   const handleName = (e)=>{
     setName(e.target.value)
-    console.log(e.target.value)
+  
   }
   const handleEmail = (e)=>{
     setEmail(e.target.value)
@@ -36,32 +37,36 @@ export function SignupForm() {
   const handlePassword = (e)=>{
     setPassword(e.target.value)
   }
+  const dataPost = {name, email, password}
 
-  const dataPost = {
-    name, email, password
-  }
-  const handleSubmit = async(e)=>{
-      e.preventDefault()
-      setLoading(true)
-      try {
-        const res = await axios.post('http://localhost:5000/api/auth/signup', dataPost)
-        console.log(res.data)
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
 
-        setTimeout(()=>{
-          navigate('/login')
-        }, 2000)
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/signup', dataPost)
+      console.log(res.data);
+
+      toast.add({
+        type: 'success',
+        title: 'Compte cree avec success',
+        description: 'Vous allez etre redirige vers la page de connexion'
+      })
+      setTimeout(()=>{
+        navigate('/login')
+      }, 2000)
+      
+    } catch (error) {
+      console.log(error.response.data)
+      setError(error.response.data.message)
+
+      toast.add({
+        type: 'error',
+        title: "Erreur lors de l'inscription",
+        description: error.response.data.message
+      })
         
-      } catch (error) {
-        console.error(error.response.data)
-        setError(error.response.data.message)
-      }finally{
-        setLoading(false)
-        setName('')
-        setEmail('')
-        setPassword('')
-      }
+    }
   }
-
 
   return (
     <Card className="w-full max-w-sm">
@@ -81,9 +86,9 @@ export function SignupForm() {
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                type="text"
                 value={name}
                 onChange={handleName}
-                type="text"
                 placeholder="enter your name"
                 required
               />
@@ -92,9 +97,9 @@ export function SignupForm() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                type="email"
                 value={email}
                 onChange={handleEmail}
-                type="email"
                 placeholder="m@example.com"
                 required
               />
@@ -110,29 +115,20 @@ export function SignupForm() {
                 </a> */}
               </div>
               <Input 
-              id="password" 
               value={password}
               onChange={handlePassword}
+              id="password" 
               type="password" 
               required />
             </div>
           </div>
+          <p className="text-red-500 text-center">{error}</p>
 
           <CardFooter className="flex-col gap-2">
                   <Button type="submit" className="w-full hover:cursor-pointer">
-                      {
-                        loading ? (
-                          <>
-                            <ClipLoader size={15} color="white"/>
-                            Chargement...
-                          </>
-                        ):('Signup')
-                      }
+                     signup
                   </Button>
-                  <p className="text-red-500">{error}</p>
-                      {/* <Button variant="outline" className="w-full">
-                      Login with Google
-                      </Button> */}
+                 
         </CardFooter>
        
                         

@@ -15,48 +15,54 @@ import { useState } from "react"
 import { useNavigate } from "react-router"
 import axios from "axios"
 import { ClipLoader } from "react-spinners"
+import { toast } from "@/components/ui/toast"
 
 export function LoginForm() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
+  const [error, setError]= useState('')
+  
   const handleEmail = (e)=>{
     setEmail(e.target.value)
-    
   }
   const handlePassword = (e)=>{
     setPassword(e.target.value)
   }
-
   const dataPost = {email, password}
 
-  const handleSubmit = async(e)=>{
-      e.preventDefault()
-      setLoading(true)
-      try {
-        const res = await axios.post('http://localhost:5000/api/auth/login', dataPost)
-        console.log(res)
-        const accessToken = res.data.token
-        if (accessToken) {
-          localStorage.setItem('Token', accessToken)
-        }
+  const handleSubmit = async (e)=>{
+    e.preventDefault()
 
-        setTimeout(()=>{
-          navigate('/home')
-        }, 2000)
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/login', dataPost)
+      console.log(res.data);
+      const roleUser = res.data.user.role
+      localStorage.setItem('Token', res.data.token)
+      localStorage.setItem('Refresh', res.data.refreshToken)
+
+      toast.add({
+        type: 'success',
+        title: 'Connexion reussie',
+        description: "Vous allez etre redirige vers la page d'acceuil"
+      })
+      setTimeout(()=>{
+        roleUser === 'ADMIN' ? navigate('/dashboard') : navigate('/home')
+      }, 2000)
+      
+    } catch (error) {
+      console.log(error.response.data)
+      setError(error.response.data.message)
+
+      toast.add({
+        type: 'error',
+        title: "Erreur lors de la connexion",
+        description: error.response.data.message
+      })
         
-      } catch (error) {
-        console.error(error.response)
-        setError(error.response.data.message)
-      }finally{
-        setLoading(false)
-        setEmail('')
-        setPassword('')
-      }
+    }
   }
+ 
 
 
   return (
@@ -103,21 +109,12 @@ export function LoginForm() {
           </div>
            <CardFooter className="flex-col gap-2">
             <Button type="submit" className="w-full">
-              {
-                loading ? (
-                  <>
-                          <ClipLoader size={15} color="white"/>
-                            Connexion en cours...
-                  </>
-                ):('Login')
-              }
+             login
             </Button>
             <Button variant="outline" className="w-full">
                 Login with Google
             </Button>
-            {
-              <p className="text-red-500">{error}</p>
-            }
+            
           </CardFooter>
         </form>
       </CardContent>

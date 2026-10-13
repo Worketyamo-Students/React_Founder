@@ -9,6 +9,8 @@ import About from './pages/About.jsx';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Home from './pages/Home';
+import Dashboard from './pages/admin/Dashboard';
+import { Toaster } from './components/ui/toast';
 
 
 
@@ -29,6 +31,10 @@ const myRouter = createBrowserRouter([
   {
     path: '/home',
     element: <Home/>
+  },
+  {
+    path: '/dashboard',
+    element: <Dashboard/>
   }
 ])
 
@@ -37,5 +43,6 @@ const myRouter = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <RouterProvider router={myRouter}/>
+    <Toaster/>
   </StrictMode>,
 )
