@@ -1,73 +1,62 @@
 import './App.css'
 import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router'
-import { Link } from 'react-router'
 import axios from 'axios'
 import {ClipLoader} from 'react-spinners'
+import { Button } from './components/ui/button'
+import { SignupForm } from './composants/SignupForm'
+import { Link } from 'react-router'
 
 //hook 
 
 
 function App(){
-const [perso, setPerso] = useState([])
-const [chargement, setChargement]= useState(true)
+
 // const [erreur, setErreur] = useState(null)
+const [val, setVal] = useState(0)
+const [perso, setPerso] = useState([])
 
 useEffect(()=>{
-  const fetchDBZ = async ()=>{
-    try {
-      const res = await axios.get('http://localhost:5000/api/auth/users')
-      console.log(res);
-      
-
-      // console.log(data);
-      // setPerso(data)
-      
-      
-    } catch (error) {
-      console.log(error);
-      
-      // setErreur(`impossible de charger les personnages`)
-    }finally{
-      setChargement(false)
-    }
+  const fetchDragon = async()=>{
+    const res = await axios.get('https://dragonball-api.com/api/characters?limit=58')
+    console.log(res)
+    const data = res.data.items
+    
+    
+    
+    console.log(data)
+    setPerso(data)
+    
+    
   }
-
-  fetchDBZ()
+fetchDragon()
+ 
   
 }, [])
 
-if(chargement){
-  return (
-    <div className='w-screen h-screen flex flex-col justify-center items-center'>
-      <ClipLoader
-        size={95}
-        color='#f59e0b'
-        speedMultiplier={1}
-      />
-      <p>Chargement des pokemeons...</p>
-    </div>
-  )
-}
-// if(erreur) return <p>{erreur}</p>
+ 
+
 
 //affichge
   return (
     <>
+
+    
+     <div className='w-screen p-10 h-screen flex justify-center items-center flex-wrap gap-15'>
+        <Link to={'/login'}><Button variant='destructive'>Se connecter</Button></Link>
+      {/* {
+      perso.map((p)=>(
+        <div key={p.id} className='w-70 h-80'>
+          <img src={p.image} alt="perso"  className='w-full h-full'/>
+          <p>Nom : {p.name}</p>
+          <p>Ki : {p.ki}</p>
+          <p>Max ki : {p.maxKi}</p>
+        </div>
+      ))
+     } */}
+     </div>
    
-      <div  className='flex flex-wrap gap-18'>
-        <h1>Users</h1>
-        {/* {
-        perso.map((p)=>(
-          <div key={p.id} className='p-4 rounded'>
-            <img src={p.image} alt="logo" className='w-60 h-60'/>
-            <h3>{p.name}</h3>
-            <p className='font-bold'>Race : {p.race}</p>
-            <p className='font-bold'>Ki de base : {p.ki}</p>
-          </div>
-        ))
-      } */}
-      </div>
+     
         
     </>
   ) 
