@@ -16,6 +16,9 @@ import { useNavigate } from "react-router"
 import axios from "axios"
 import { ClipLoader } from "react-spinners"
 import { toast } from "@/components/ui/toast"
+import { GoogleLogin } from "@react-oauth/google"
+
+
 
 export function LoginForm() {
   const navigate = useNavigate()
@@ -31,12 +34,17 @@ export function LoginForm() {
   }
   const dataPost = {email, password}
 
+
+
+
+  
+
   const handleSubmit = async (e)=>{
     e.preventDefault()
 
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', dataPost)
-      console.log(res.data);
+      console.log(res.data)
       const roleUser = res.data.user.role
       localStorage.setItem('Token', res.data.token)
       localStorage.setItem('Refresh', res.data.refreshToken)
@@ -62,6 +70,40 @@ export function LoginForm() {
         
     }
   }
+
+  const handleGoogleLogin = async(credentialResponse)=>{
+    try {
+      const idToken = credentialResponse.credential
+      const res = await axios.post('http://localhost:5000/api/auth/google-login', {idToken})
+      console.log(res);
+
+      const roleUser = res.data.user.role
+      localStorage.setItem('Token', res.data.token)
+      localStorage.setItem('Refresh', res.data.refreshToken)
+
+      toast.add({
+        type: 'success',
+        title: 'Connexion reussie',
+        description: "Vous allez etre redirige vers la page d'acceuil"
+      })
+      setTimeout(()=>{
+        roleUser === 'ADMIN' ? navigate('/dashboard') : navigate('/home')
+      }, 2000)
+      
+      
+
+    } catch (error) {
+      console.log(error.response.data)
+      setError(error.response.data.message)
+
+      toast.add({
+        type: 'error',
+        title: "Erreur de connexio google",
+        description: error.response.data.message || 'Impossible de valider votre compte google'
+      })
+    }
+  }
+
  
 
 
@@ -111,9 +153,10 @@ export function LoginForm() {
             <Button type="submit" className="w-full">
              login
             </Button>
-            <Button variant="outline" className="w-full">
-                Login with Google
-            </Button>
+            <GoogleLogin onSuccess={handleGoogleLogin} onError={()=>{
+              toast.add({type: 'error', title: 'Erreur google', description: 'Connexion google a echoue'})
+            }} useOneTap></GoogleLogin>
+           
             
           </CardFooter>
         </form>

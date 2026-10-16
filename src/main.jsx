@@ -11,8 +11,10 @@ import Signup from './pages/Signup';
 import Home from './pages/Home';
 import Dashboard from './pages/admin/Dashboard';
 import { Toaster } from './components/ui/toast';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
-
+// const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID
+const GOOGLE_CLIENT_ID = "673948699076-rnljmno6k7kchm705ortvj21sujga4md.apps.googleusercontent.com"
 
 const myRouter = createBrowserRouter([
   {
@@ -42,7 +44,10 @@ const myRouter = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={myRouter}/>
-    <Toaster/>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <RouterProvider router={myRouter}/>
+        <Toaster/>
+      </GoogleOAuthProvider>
+    
   </StrictMode>,
 )
