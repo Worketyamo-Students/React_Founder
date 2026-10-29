@@ -25,7 +25,9 @@ export function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]= useState('')
-
+  const [otpRequired, setOtpRequired] = useState(false)
+  const [otp, setOtp] = useState('')
+  const [isResending, setIsResending] = useState(false)
   
   
   const handleEmail = (e)=>{
@@ -34,11 +36,39 @@ export function LoginForm() {
   const handlePassword = (e)=>{
     setPassword(e.target.value)
   }
+  const handleOtp = (e) => {setOtp(e.target.value) 
+    // console.log(e.target.value);
+  }
+
   const dataPost = {email, password}
 
 
 
+  const handleVerify = async (e)=>{
+    e.preventDefault()
+    
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/otp', {email, otpCode: otp})
+      console.log(res.data);
+      const accessToken = res.data.token
+      localStorage.setItem("token", accessToken)
 
+      const refreshToken = res.data.refreshToken
+      localStorage.setItem("Refresh", refreshToken)
+
+      setTimeout(()=>{
+        if (res.data.user.role === "ADMIN") {
+          navigate("/dashboard")
+        }else{
+          navigate("/home")
+        }
+      },2000)
+      
+    } catch (error) {
+      console.log(error.response.data)
+      setError(error.response.data.message)
+    }
+  }
   
 
   const handleSubmit = async (e)=>{
@@ -48,17 +78,17 @@ export function LoginForm() {
       const res = await axios.post('http://localhost:5000/api/auth/login', dataPost)
       console.log(res.data)
       const roleUser = res.data.user.role
-      localStorage.setItem('Token', res.data.token)
-      localStorage.setItem('Refresh', res.data.refreshToken)
-
+      // localStorage.setItem('Token', res.data.token)
+      // localStorage.setItem('Refresh', res.data.refreshToken)
+      setOtpRequired(true)
       toast.add({
         type: 'success',
-        title: 'Connexion reussie',
-        description: "Vous allez etre redirige vers la page d'acceuil"
+        title: 'Code otp envoye',
+        description: "Consultez votre mail"
       })
-      setTimeout(()=>{
-        roleUser === 'ADMIN' ? navigate('/dashboard') : navigate('/home')
-      }, 2000)
+      // setTimeout(()=>{
+      //   roleUser === 'ADMIN' ? navigate('/dashboard') : navigate('/home')
+      // }, 2000)
       
     } catch (error) {
       console.log(error.response.data)
@@ -70,6 +100,29 @@ export function LoginForm() {
         description: error.response.data.message
       })
         
+    }
+  }
+  const handleResendOtp = async (e)=>{
+    try {
+      setIsResending(true)
+      const res = await axios.post('http://localhost:5000/api/auth/login', dataPost)
+      console.log(res.data)
+      toast.add({
+        type: 'success',
+        title: 'Nouveau code otp',
+        description: "Consultez votre mail"
+      })
+    } catch (error) {
+       console.log(error.response.data)
+       setError(error.response.data.message)
+
+      toast.add({
+        type: 'error',
+        title: "Erreur lors de la connexion",
+        description: error.response.data.message
+      })
+    } finally{
+      setIsResending(false)
     }
   }
 
@@ -93,7 +146,6 @@ export function LoginForm() {
       }, 2000)
       
       
-
     } catch (error) {
       console.log(error.response.data)
       setError(error.response.data.message)
@@ -112,16 +164,62 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
+        <CardTitle>{otpRequired ? 'Valider le code otp' : 'Login to your account'}</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          {otpRequired ? `Entrer votre otp envoyé sur ${email}` : 'Enter your email below to login to your account'}
         </CardDescription>
-        <CardAction>
+        {!otpRequired && (
+          <CardAction>
           <Link to={'/signup'}><Button variant="link">Sign Up</Button></Link>
-        </CardAction>
+         </CardAction>
+        )}
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit}>
+        {otpRequired ? (
+          <form onSubmit={handleVerify}>
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="otp">Verification du code otp</Label>
+              <Input
+                value={otp}
+                maxLength={6}
+                onChange={handleOtp}
+                id="otp"
+                type="text"
+                placeholder="265695"
+                required
+              />
+            </div>
+            
+          </div>
+           <CardFooter className="flex-col gap-2">
+            <Button
+             type="submit" 
+             className="w-full">
+             Verify
+            </Button>
+
+            <Button
+             type="button" 
+             variant="outline"
+             onClick={handleResendOtp}
+             className="w-full">
+              {isResending ? 'Envoi en cours...' : 'Renvoyer le code'}
+            </Button>
+
+            <Button
+             type="button" 
+             onClick={()=>setOtpRequired(false)}
+             className="w-full">
+              Retour
+            </Button>
+            
+           
+            
+          </CardFooter>
+        </form>
+        ):(
+          <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -161,7 +259,8 @@ export function LoginForm() {
            
             
           </CardFooter>
-        </form>
+          </form>
+        )}
       </CardContent>
      
     </Card>
